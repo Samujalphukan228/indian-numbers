@@ -1,0 +1,12 @@
+[package]
+name = "indian-numbers"
+version = "0.1.0"
+edition = "2024"
+description = "Format numbers in Indian style (Lakh, Crore) and convert to words"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Samujalphukan228/indian-numbers"
+keywords = ["indian", "number", "lakh", "crore", "rupees", "formatting"]
+categories = ["internationalization", "text-processing"]
+readme = "README.md"
+
+[dependencies]
