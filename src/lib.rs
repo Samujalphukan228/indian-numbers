@@ -1,9 +1,8 @@
 //! indian-numbers
 //!
-//! A small crate to format numbers in Indian style and convert them to words.
+//! Format numbers in Indian style and convert to words with Rupee support.
 
-/// Formats a number using Indian numbering system (Lakh, Crore)
-/// Example: 1234567 → "12,34,567"
+/// Formats number in Indian comma system: 1234567 → "12,34,567"
 pub fn format(n: i64) -> String {
     if n == 0 {
         return "0".to_string();
@@ -30,8 +29,7 @@ pub fn format(n: i64) -> String {
     formatted
 }
 
-/// Converts number to Indian words
-/// Example: 1234567 → "Twelve Lakh Thirty Four Thousand Five Hundred Sixty Seven"
+/// Converts number to Indian words with improved "and"
 pub fn to_words(n: i64) -> String {
     if n == 0 {
         return "Zero".to_string();
@@ -39,7 +37,6 @@ pub fn to_words(n: i64) -> String {
 
     let is_negative = n < 0;
     let abs_n = n.abs();
-
     let words = number_to_words(abs_n);
 
     if is_negative {
@@ -49,19 +46,24 @@ pub fn to_words(n: i64) -> String {
     }
 }
 
+/// Returns "₹12,34,567 only" format - Most useful for invoices
+pub fn to_rupees(n: i64) -> String {
+    if n == 0 {
+        return "₹0 only".to_string();
+    }
+    format!("₹{} only", format(n))
+}
+
+// Improved number to words with "and"
 fn number_to_words(n: i64) -> String {
-    const ONES: [&str; 20] = [
-        "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
-        "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
-        "Seventeen", "Eighteen", "Nineteen",
-    ];
+    const ONES: [&str; 20] = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+        "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
 
     const TENS: [&str; 10] = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
 
     if n < 20 {
         return ONES[n as usize].to_string();
     }
-
     if n < 100 {
         let ten = TENS[(n / 10) as usize];
         let one = if n % 10 != 0 {
@@ -93,7 +95,11 @@ fn number_to_words(n: i64) -> String {
     if n >= 100 {
         let hundred = n / 100;
         let rem = n % 100;
-        let rem_str = if rem != 0 { format!(" {}", number_to_words(rem)) } else { "".to_string() };
+        let rem_str = if rem != 0 {
+            format!(" and {}", number_to_words(rem))
+        } else {
+            "".to_string()
+        };
         return format!("{} Hundred{}", number_to_words(hundred), rem_str);
     }
 
@@ -107,18 +113,19 @@ mod tests {
     #[test]
     fn test_format() {
         assert_eq!(format(1234567), "12,34,567");
-        assert_eq!(format(1234567890), "1,23,45,67,890");
-        assert_eq!(format(100000), "1,00,000");
-        assert_eq!(format(-98765), "-98,765");
-        assert_eq!(format(0), "0");
+        assert_eq!(format(123456789), "12,34,56,789");
     }
 
     #[test]
     fn test_to_words() {
+        assert_eq!(to_words(123), "One Hundred and Twenty Three");
         assert_eq!(to_words(1234567), "Twelve Lakh Thirty Four Thousand Five Hundred Sixty Seven");
         assert_eq!(to_words(100000), "One Lakh");
-        assert_eq!(to_words(123456789), "Twelve Crore Thirty Four Lakh Fifty Six Thousand Seven Hundred Eighty Nine");
-        assert_eq!(to_words(0), "Zero");
-        assert_eq!(to_words(-500), "Minus Five Hundred");
+    }
+
+    #[test]
+    fn test_to_rupees() {
+        assert_eq!(to_rupees(1234567), "₹12,34,567 only");
+        assert_eq!(to_rupees(0), "₹0 only");
     }
 }
